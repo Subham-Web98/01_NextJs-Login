@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
+import ToastProvider from "../components/ToastProvider";
+
 
 export default function Login() {
   const router = useRouter();
@@ -23,7 +25,7 @@ export default function Login() {
       router.push("/profile");
     } catch (error) {
       console.log("Login Error", error);
-      toast.error(error);
+      toast.error("Login Error - Please try again..." );
     } finally {
       setLoading(false);
     }
@@ -37,7 +39,9 @@ export default function Login() {
   }, [user]);
 
   return (
+    
     <div className="w-full h-screen flex items-center justify-center flex-col">
+      <ToastProvider/>
       <h1 className="text-center text-6xl font-bold bg-slate-600 text-white my-4 py-4 px-20 rounded-3xl ">
         {loading ? "Processing" : "Login"}
       </h1>
