@@ -1,67 +1,103 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { NextResponse } from "next/server";
 import axios from "axios";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import ToastProvider from "../components/ToastProvider";
-import { useState } from "react";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [data, setData] = useState("username");
+  const [data, setData] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Logout Functionality
   const logout = async () => {
     try {
       await axios.get("/api/users/logout");
-      toast.success("Logout Successfully");
+      toast.success("Logged out successfully");
       router.push("/login");
     } catch (error: any) {
-      console.log("Logout Error - Something  went wrong");
-      toast.error("Error");
-      return NextResponse.json({ error: error }, { status: 400 });
+      console.error("Logout Error:", error);
+      toast.error("Failed to log out. Please try again.");
     }
   };
-  //! Using useEffect hook to do something like this
+
+  // Fetch User Details
   const getUserDetails = async () => {
-    const response = await axios.get("/api/users/loggedUser");
-    console.log(response.data);
-    setData(response.data.user.username);
+    try {
+      setLoading(true);
+      const response = await axios.get("/api/users/loggedUser");
+      console.log("User Data:", response.data);
+      setData(response.data.user.username);
+      toast.success("User details fetched successfully");
+    } catch (error: any) {
+      console.error("Error Fetching User Details:", error);
+      toast.error("Failed to fetch user details. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Fetch user details on component mount
+  useEffect(() => {
+    getUserDetails();
+  }, []);
+
   return (
-    <div className="w-full h-screen flex flex-col items-center justify-center">
+    <div className="w-full min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-800 via-gray-900 to-black text-gray-200 p-4">
       <ToastProvider />
-      <h1 className="text-center text-3xl sm:text-6xl font-bold bg-slate-600 text-white my-4 py-4 px-20 rounded-3xl ">
-        Your Profile Page
-      </h1>
-      {""}
-      <h2 className="px-8 py-3 font-semibold my-3 rounded-3xl bg-violet-100 text-red-500 ">
-        Click here to visit your profile page {""}
-        {data === "username" ? (
-          ""
-        ) : (
-          <Link
-            className="px-8 py-3 font-semibold my-3 rounded-3xl text-white bg-green-400"
-            href={`/profile/${data}`}
+      <div className="max-w-3xl w-full bg-gray-800 shadow-xl rounded-lg p-6">
+        <h1 className="text-center text-4xl sm:text-6xl font-bold text-white mb-8 animate-fade-in">
+          Profile Page
+        </h1>
+
+        <div className="bg-gray-700 p-4 rounded-lg shadow-md mb-6">
+          <h2
+            className={`text-lg sm:text-2xl font-semibold text-center ${
+              loading ? "animate-pulse" : ""
+            }`}
           >
-            {data}
-          </Link>
-        )}
-      </h2>
+            {loading ? (
+              "Fetching your profile..."
+            ) : data ? (
+              <>
+                Click here Visit your profile   {" > "}
+                <Link
+                  className="inline-block mt-2 px-4 py-1/2 font-medium rounded-lg bg-gray-800 text-white hover:bg-gray-950  transition transform duration-300"
+                  href={`/profile/${data}`}
+                >
+                  {data}
+                </Link>
+              </>
+            ) : (
+              "User data not available. Please fetch details."
+            )}
+          </h2>
+        </div>
 
-      <button
-        onClick={logout}
-        className="px-8 py-3 font-semibold my-3 rounded-3xl bg-red-400 text-black hover:scale-110 hover:bg-red-600 hover:text-white border-red-900 shadow-inner shadow-black"
-      >
-        Logout
-      </button>
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+          <button
+            onClick={logout}
+            className="w-full sm:w-auto px-6 py-3 font-semibold rounded-lg bg-red-500 hover:bg-red-600 hover:scale-105 text-white transition transform duration-300 shadow-lg"
+          >
+            Logout
+          </button>
 
-      <button
-        onClick={getUserDetails}
-        className="px-8 py-3 font-semibold my-3 rounded-3xl bg-green-400 text-black hover:scale-110 hover:bg-green-600 hover:text-white border-green-900 shadow-inner shadow-black"
-      >
-        Get Your Name
-      </button>
+          <button
+            onClick={getUserDetails}
+            disabled={loading}
+            className={`w-full sm:w-auto px-6 py-3 font-semibold rounded-lg transition transform duration-300 shadow-lg ${
+              loading
+                ? "bg-gray-500 text-gray-300 cursor-not-allowed animate-pulse"
+                : "bg-blue-500 text-white hover:bg-blue-600 hover:scale-105"
+            }`}
+          >
+            {loading ? "Loading..." : "Get Your Username"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
