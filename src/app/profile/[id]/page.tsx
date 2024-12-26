@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any *//* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export default async function UserProfile({ params }: any) {
   const resolvedParams = await params; // Ensure `params` is resolved
   const { id } = resolvedParams; // Extract `id` from the resolved `params`
